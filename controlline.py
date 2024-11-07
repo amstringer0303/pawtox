@@ -2,14 +2,15 @@ import os
 from dotenv import load_dotenv
 import requests
 
+# Load API key from .env file
 load_dotenv()
 API_KEY = os.getenv("GOOGLE_API_KEY")
 
-# converting zip code to coordinates 
+# Convert zip code to coordinates
 def get_coordinates_from_zip(zip_code):
     endpoint = "https://maps.googleapis.com/maps/api/geocode/json"
     params = {
-        "key": API_KEY,  
+        "key": API_KEY,
         "address": zip_code
     }
     response = requests.get(endpoint, params=params)
@@ -26,13 +27,13 @@ def get_coordinates_from_zip(zip_code):
         print("Error with Geocoding API request:", response.status_code, response.text)
         return None
 
-# finding nearest open vet clinics based on coordinates 
+# Find nearest open vet clinics based on coordinates
 def find_open_vet_clinics(latitude, longitude):
     location = f"{latitude},{longitude}"
     radius = 10000  # Search radius in meters
     endpoint = "https://maps.googleapis.com/maps/api/place/nearbysearch/json"
     params = {
-        "key": "YOUR_GOOGLE_PLACES_API_KEY",
+        "key": API_KEY,
         "location": location,
         "radius": radius,
         "type": "veterinary_care",
@@ -42,9 +43,6 @@ def find_open_vet_clinics(latitude, longitude):
     response = requests.get(endpoint, params=params)
     if response.status_code == 200:
         clinics = response.json().get("results", [])
-        
-        # Print debug information
-        print("Response from Google Places API:", response.json())
         
         if clinics:
             clinic_info = [{"name": clinic["name"], "address": clinic["vicinity"]} for clinic in clinics]
@@ -57,7 +55,7 @@ def find_open_vet_clinics(latitude, longitude):
         print("Error in API request:", response.status_code, response.text)
         return []
 
-# function to fetch open vet clinics based on zip code
+# Function to fetch open vet clinics by zip code
 def get_open_vet_clinics_by_zip(zip_code):
     coordinates = get_coordinates_from_zip(zip_code)
     if coordinates:
@@ -67,7 +65,7 @@ def get_open_vet_clinics_by_zip(zip_code):
         print("Could not retrieve coordinates for the provided zip code.")
         return []
 
-
+# Get zip code from caller and find open clinics
 zip_code = input("Please provide your zip code: ")
 open_clinics = get_open_vet_clinics_by_zip(zip_code)
 print("Open Clinics Nearby:", open_clinics)
